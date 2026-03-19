@@ -2,13 +2,15 @@
 // Created by adi on 3/19/26.
 //
 
-#ifndef PASSWORDMANAGER2026_CRYPTO_H
-#define PASSWORDMANAGER2026_CRYPTO_H
+#pragma once
+#include <string>
 
 
 class Crypto
 {
+public:
+    static void init();
+    static std::string hashPassword(const std::string& password);
 };
 
 
-#endif //PASSWORDMANAGER2026_CRYPTO_H

@@ -1,6 +1,7 @@
 #include "crow.h"
 #include <string>
 
+#include "crypto/Crypto.h"
 #include "database/DbManager.h"
 
 int main()
@@ -13,9 +14,21 @@ int main()
         return 1;
     }
     crow::SimpleApp app;
-    CROW_ROUTE(app,"/")([]()
-    {
-        return "dziala hujstwo";
+    CROW_ROUTE(app, "/register").methods(crow::HTTPMethod::POST)
+        ([&db](const crow::request& req){
+            auto body=crow::json::load(req.body);
+            if (!body||!body.has("login")||!body.has("password"))
+            {
+                return crow::response(400,"{\"error\": \"Brakk loginu lub hasla\"}");
+            }
+            std::string login=body["login"].s();
+            std::string passowrd=body["password"].s();
+            std::string hash=Crypto::hashPassword(passowrd);
+            if (db.registerUser(login,hash))
+            {
+                return crow::response(201,"{\"status\": \"Konto utworzone\"}");
+            }
+                return crow::response(409,"{\"status\": \"Login jest juz zajety lub wystapil blad bazy danych\"}");
     });
     CROW_ROUTE(app,"/ping")([]()
     {

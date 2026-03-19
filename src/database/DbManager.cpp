@@ -25,3 +25,19 @@ bool DbManager::checkConnection()
         return false;
     }
 }
+
+bool DbManager::registerUser(const std::string& login, const std::string& password)
+{
+    try
+    {
+        pqxx::connection conn(connStr);
+        pqxx::work txn(conn);
+        txn.exec_params("INSERT INTO users (login,password) VALUES ($1,$2)",login,password);
+        txn.commit();
+        return true;
+    }catch (const std::exception&e)
+    {
+        std::cerr<<"blad przy rejestracji"<<e.what()<<std::endl;
+        return false;
+    }
+}

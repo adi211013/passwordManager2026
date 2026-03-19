@@ -12,6 +12,7 @@ class DbManager
 public:
     DbManager(const std::string & connectionString);
     bool checkConnection();
+    bool registerUser(const std::string& login, const std::string& password);
 private:
     std::string connStr;
 };
