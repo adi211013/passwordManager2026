@@ -30,6 +30,30 @@ int main()
             }
                 return crow::response(409,"{\"status\": \"Login jest juz zajety lub wystapil blad bazy danych\"}");
     });
+    CROW_ROUTE(app, "/login").methods(crow::HTTPMethod::POST)
+    ([&db](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+
+        if (!body || !body.has("login") || !body.has("password")) {
+            return crow::response(400, "{\"error\": \"Brak loginu lub hasla\"}");
+        }
+
+        std::string login = body["login"].s();
+        std::string password = body["password"].s();
+
+        std::string hash = db.getPasswordHashForUser(login);
+
+        if (hash.empty()) {
+            return crow::response(401, "{\"error\": \"Nieprawidlowy login lub haslo\"}");
+        }
+
+        if (Crypto::verifyPassword(password, hash)) {
+            std::string token = Crypto::generateToken(login);
+
+            return crow::response(200, "{\"status\": \"Zalogowano pomyslnie!\", \"token\": \"" + token + "\"}");
+        }
+        return crow::response(401, "{\"error\": \"Nieprawidlowy login lub haslo\"}");
+    });
     CROW_ROUTE(app,"/ping")([]()
     {
        return crow::response(200,"{\"status\": \"ok\"}");

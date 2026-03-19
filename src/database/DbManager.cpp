@@ -14,11 +14,8 @@ bool DbManager::checkConnection()
             std::cout<<"Polaczono z baza dany"<<conn.dbname()<<std::endl;
             return true;
         }
-        else
-        {
-            std::cerr<<"Blad nie mozna utworzyc polaczenia z baza danych"<<std::endl;
-            return false;
-        }
+        std::cerr<<"Blad nie mozna utworzyc polaczenia z baza danych"<<std::endl;
+        return false;
     }catch (const std::exception& e)
     {
         std::cerr<<"Wyjatek: "<<e.what()<<std::endl;
@@ -39,5 +36,25 @@ bool DbManager::registerUser(const std::string& login, const std::string& passwo
     {
         std::cerr<<"blad przy rejestracji"<<e.what()<<std::endl;
         return false;
+    }
+}
+std::string DbManager::getPasswordHashForUser(const std::string& login)
+{
+    try
+    {
+        pqxx::connection conn(connStr);
+        pqxx::work txn(conn);
+        pqxx::result res = txn.exec_params(
+            "SELECT password FROM users WHERE login = $1",
+            login
+        );
+        if (res.empty())
+            return "";
+        return res[0][0].as<std::string>();
+    }
+    catch (const std::exception& e)
+    {
+        std::cerr << "Blad przy pobieraniu hasla: " << e.what() << std::endl;
+        return "";
     }
 }

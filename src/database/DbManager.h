@@ -13,6 +13,7 @@ public:
     DbManager(const std::string & connectionString);
     bool checkConnection();
     bool registerUser(const std::string& login, const std::string& password);
+    std::string getPasswordHashForUser(const std::string& login);
 private:
     std::string connStr;
 };
