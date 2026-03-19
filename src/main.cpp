@@ -58,6 +58,54 @@ int main()
     {
        return crow::response(200,"{\"status\": \"ok\"}");
     });
+
+
+    CROW_ROUTE(app, "/verify_session").methods(crow::HTTPMethod::GET)
+    ([](const crow::request& req) {
+        auto authHeader = req.get_header_value("Authorization");
+        if (authHeader.empty() || authHeader.substr(0, 7) != "Bearer ") {
+            return crow::response(401, "{\"error\": \"Brak autoryzacji\"}");
+        }
+        std::string token = authHeader.substr(7);
+        std::string login = Crypto::verifyToken(token);
+        if (login.empty()) {
+            return crow::response(401, "{\"error\": \"Nieprawidlowy lub wygasly token\"}");
+        }
+        return crow::response(200, "{\"status\": \"zalogowano, " + login + "\"}");
+    });
+
+    CROW_ROUTE(app,"/vault").methods(crow::HTTPMethod::POST)([&db](const crow::request& req)
+    {
+        auto auth=req.get_header_value("Authorization");
+        if (auth.empty()||auth.substr(0,7)!="Bearer ")
+            return crow::response(401,"{\"error\": \"Brak autoryzacji\"}");
+        std::string token=auth.substr(7);
+        std::string login=Crypto::verifyToken(token);
+        if (login.empty())
+            return crow::response(401,"{\"error\": \"Nieprawidlowy login\"}");
+        int userId=db.getUserId(login);
+        if (userId==-1)
+            return crow::response(404,"{\"error\": \"Nieznaleziono uzytkownika\"}");
+        auto body=crow::json::load(req.body);
+        if (!body || !body.has("service")|| !body.has("username")|| !body.has("password"))
+        {
+            return crow::response(400, "{\"error\": \"Brak danych serwisu, uzytkownika lub hasla\"}");
+        }
+        std::string service=body["service"].s();
+        std::string username =body["username"].s();
+        std::string password=body["password"].s();
+        std::string encryptedPassword=Crypto::encrypt(password);
+        if (db.addCredential(userId,service,username,encryptedPassword))
+            return crow::response(201,"{\"status\": Haslo zapisane\"}");
+        return crow::response(500,"{\"status\": Blad bazy danych przy zapisaniu\"}");
+
+    });
+
+    //TODO
+    //1. Pobieranie hasel
+    //2. Zmiana hasla admina
+    //3. Zmiana hasel w serwisie
+    //4. Podmianka metod i uporzadkowanie kodu
     app.port((18080)).multithreaded().run();
 
     return 0;

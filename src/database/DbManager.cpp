@@ -58,3 +58,37 @@ std::string DbManager::getPasswordHashForUser(const std::string& login)
         return "";
     }
 }
+int DbManager::getUserId(const std::string& login)
+{
+    try
+    {
+        pqxx::connection conn(connStr);
+        pqxx::work txn(conn);
+        pqxx::result res=txn.exec_params("SELECT id FROM users WHERE login =$1",login);
+        if (res.empty())
+            return -1;
+        return res[0][0].as<int>();
+    }catch (const std::exception& e)
+    {
+        std::cerr<<"blad pobierania id"<<e.what()<<std::endl;
+        return -1;
+    }
+}
+bool DbManager::addCredential(int userId,const std::string& service, const std::string& username,const std::string& pass)
+{
+    try
+    {
+        pqxx::connection conn(connStr);
+        pqxx::work txn(conn);
+        txn.exec_params(
+                  "INSERT INTO credentials (user_id, service_name, login_name, encrypted_password) VALUES ($1, $2, $3, $4)",
+                  userId, service, username, pass
+              );
+        txn.commit();
+        return true;
+    }catch (std::exception& e)
+    {
+        std::cerr<<"Blad dodawania hasla"<<e.what()<<std::endl;
+        return false;
+    }
+}
