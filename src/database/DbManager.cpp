@@ -92,3 +92,31 @@ bool DbManager::addCredential(int userId,const std::string& service, const std::
         return false;
     }
 }
+std::vector<Credentials> DbManager::getCredentials(int userId)
+{
+    std::vector<Credentials> credentials;
+    try
+    {
+        pqxx::connection conn(connStr);
+        pqxx::work txn(conn);
+        pqxx::result result =txn.exec(
+            "SELECT id,service_name,login_name,encrypted_password,updated_at FROM credentials where user_id=$1",
+            pqxx::params{userId});
+
+        for (auto const &row : result)
+            {
+                credentials.push_back({
+                    row["id"].as<int>(),
+                    userId,
+                    row["service_name"].as<std::string>(),
+                    row["login_name"].as<std::string>(),
+                    row["encrypted_password"].as<std::string>(),
+                    row["updated_at"].as<std::string>()
+                });
+            }
+    }catch (std::exception& e)
+    {
+        std::cerr<<"Blad przy pobieraniu hasel"<<e.what()<<std::endl;
+    }
+    return credentials;
+}

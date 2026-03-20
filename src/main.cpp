@@ -6,6 +6,12 @@
 
 int main()
 {
+    try {
+        Crypto::init();
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
     std::string connStr="dbname=passmanager user=admin password=admin host=127.0.0.1 port=5432";
     DbManager db(connStr);
     if (!db.checkConnection())
@@ -100,12 +106,53 @@ int main()
         return crow::response(500,"{\"status\": Blad bazy danych przy zapisaniu\"}");
 
     });
+    CROW_ROUTE(app,"/vault").methods(crow::HTTPMethod::GET)([&db](const crow::request& req)
+    {
+        auto authHeader = req.get_header_value("Authorization");
+                if (authHeader.empty() || authHeader.substr(0, 7) != "Bearer ") {
+                    return crow::response(401, "{\"error\": \"Brak autoryzacji\"}");
+                }
+
+                std::string token = authHeader.substr(7);
+                std::string login = Crypto::verifyToken(token);
+
+                if (login.empty()) {
+                    return crow::response(401, "{\"error\": \"Nieprawidlowy lub wygasly token\"}");
+                }
+
+                int userId = db.getUserId(login);
+                if (userId == -1) {
+                    return crow::response(404, "{\"error\": \"Nie znaleziono uzytkownika\"}");
+                }
+
+                auto creds = db.getCredentials(userId);
+
+                crow::json::wvalue responseJson;
+                std::vector<crow::json::wvalue> credsList;
+
+                for (const auto& c : creds) {
+                    crow::json::wvalue temp;
+                    temp["id"] = c.getId();
+                    temp["userId"] = c.getUserId();
+                    temp["serviceName"] = c.getServiceName();
+                    temp["loginName"] = c.getLoginName();
+                    temp["password"] = Crypto::decrypt(c.getPassword());
+                    temp["date"] = c.getDate();
+
+                    credsList.push_back(std::move(temp));
+                }
+
+                responseJson["credentials"] = std::move(credsList);
+                return crow::response(200, responseJson);
+    });
 
     //TODO
-    //1. Pobieranie hasel
     //2. Zmiana hasla admina
     //3. Zmiana hasel w serwisie
     //4. Podmianka metod i uporzadkowanie kodu
+    //5. USUWANIE HASEL
+    //6 . LOGI
+    //7. PRZENIESIENIE MAINA
     app.port((18080)).multithreaded().run();
 
     return 0;

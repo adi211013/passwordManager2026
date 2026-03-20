@@ -31,6 +31,8 @@ add_executable(passwordManager2026
         src/database/DbManager.h
         src/crypto/Crypto.cpp
         src/crypto/Crypto.h
+        src/credentials/Credentials.cpp
+        src/credentials/Credentials.h
 )
 
 target_include_directories(passwordManager2026 PRIVATE ${PQXX_INCLUDE_DIRS} ${SODIUM_INCLUDE_DIRS})
