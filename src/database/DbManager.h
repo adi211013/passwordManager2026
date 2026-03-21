@@ -19,6 +19,7 @@ public:
     int getUserId(const std::string& login);
     bool addCredential(int userId,const std::string& service, const std::string& username,const std::string& pass);
     std::vector<Credentials> getCredentials(int userId);
+    bool deleteCredential(int credentialId,int userId);
 private:
     std::string connStr;
 };
