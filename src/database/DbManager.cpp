@@ -29,7 +29,7 @@ bool DbManager::registerUser(const std::string& login, const std::string& passwo
     {
         pqxx::connection conn(connStr);
         pqxx::work txn(conn);
-        txn.exec_params("INSERT INTO users (login,password) VALUES ($1,$2)",login,password);
+        txn.exec("INSERT INTO users (login,password) VALUES ($1,$2)",pqxx::params{login,password});
         txn.commit();
         return true;
     }catch (const std::exception&e)
@@ -44,9 +44,9 @@ std::string DbManager::getPasswordHashForUser(const std::string& login)
     {
         pqxx::connection conn(connStr);
         pqxx::work txn(conn);
-        pqxx::result res = txn.exec_params(
+        pqxx::result res = txn.exec(
             "SELECT password FROM users WHERE login = $1",
-            login
+            pqxx::params{login}
         );
         if (res.empty())
             return "";
@@ -64,7 +64,7 @@ int DbManager::getUserId(const std::string& login)
     {
         pqxx::connection conn(connStr);
         pqxx::work txn(conn);
-        pqxx::result res=txn.exec_params("SELECT id FROM users WHERE login =$1",login);
+        pqxx::result res=txn.exec("SELECT id FROM users WHERE login =$1",pqxx::params{login});
         if (res.empty())
             return -1;
         return res[0][0].as<int>();
@@ -80,9 +80,9 @@ bool DbManager::addCredential(int userId,const std::string& service, const std::
     {
         pqxx::connection conn(connStr);
         pqxx::work txn(conn);
-        txn.exec_params(
+        txn.exec(
                   "INSERT INTO credentials (user_id, service_name, login_name, encrypted_password) VALUES ($1, $2, $3, $4)",
-                  userId, service, username, pass
+                  pqxx::params{userId, service, username, pass}
               );
         txn.commit();
         return true;
@@ -134,6 +134,42 @@ bool DbManager::deleteCredential(int credentialId, int userId)
     }catch (const std::exception &e)
     {
         std::cerr<<"blad przy usuwaniu hasla"<<e.what()<<std::endl;
+        return false;
+    }
+}
+
+bool DbManager::updateCredential(int credentialId, int userId, const std::string& service, const std::string& username,
+    const std::string& encryptedPassword)
+{
+    try
+    {
+        pqxx::connection conn(connStr);
+        pqxx::work txn(conn);
+        pqxx::result res = txn.exec(
+                    "UPDATE credentials SET service_name = $1, login_name = $2, encrypted_password = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 AND user_id = $5",
+                    pqxx::params{service, username, encryptedPassword, credentialId, userId}
+                );
+        txn.commit();
+        return res.affected_rows()==1;
+    }catch (const std::exception&e)
+    {
+        std::cerr<<"Blad przy aktualizacji wpisu"<<e.what()<<std::endl;
+        return false;
+    }
+}
+
+bool DbManager::updateMasterPassword(int userId, const std::string& newPasswordHash)
+{
+    try
+    {
+        pqxx::connection conn(connStr);
+        pqxx::work txn(conn);
+        pqxx::result res = txn.exec("UPDATE users SET password = $1 WHERE id= $2",pqxx::params{newPasswordHash,userId});
+        txn.commit();
+        return res.affected_rows()==1;
+    }catch (const std::exception&e)
+    {
+        std::cerr<<"blad przy zmiania hasla"<<e.what()<<std::endl;
         return false;
     }
 }

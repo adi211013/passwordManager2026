@@ -153,9 +153,70 @@ int main()
             return crow::response(200, "{\"status\": \"Haslo usuniete\"}");
         return crow::response(404, "{\"error\": \"Nie znaleziono hasla lub brak uprawnien\"}");
     });
+    CROW_ROUTE(app, "/vault/<int>").methods(crow::HTTPMethod::PUT)([&db](const crow::request &req, int credentialId)
+    {
+        auto authHeader = req.get_header_value("Authorization");
+        if (authHeader.empty() || authHeader.substr(0, 7) != "Bearer ")
+            return crow::response(401, "{\"error\": \"Brak autoryzacji\"}");
+
+        std::string token = authHeader.substr(7);
+        std::string login = Crypto::verifyToken(token);
+        if (login.empty())
+            return crow::response(401, "{\"error\": \"Nieprawidlowy lub wygasly token\"}");
+
+        int userId = db.getUserId(login);
+        if (userId == -1)
+            return crow::response(404, "{\"error\": \"Nie znaleziono uzytkownika\"}");
+
+        auto body = crow::json::load(req.body);
+        if (!body || !body.has("service") || !body.has("username") || !body.has("password"))
+            return crow::response(400, "{\"error\": \"Nieprawidlowy JSON\"}");
+
+        std::string service = body["service"].s();
+        std::string username = body["username"].s();
+        std::string password = body["password"].s();
+
+        std::string encryptedPassword = Crypto::encrypt(password);
+
+        if (db.updateCredential(credentialId, userId, service, username, encryptedPassword))
+            return crow::response(200, "{\"status\": \"Wpis zaktualizowany\"}");
+
+        return crow::response(404, "{\"error\": \"Nie znaleziono wpisu lub brak uprawnien\"}");
+    });
+
+    CROW_ROUTE(app, "/user/password").methods(crow::HTTPMethod::PUT)([&db](const crow::request &req)
+    {
+        auto authHeader = req.get_header_value("Authorization");
+        if (authHeader.empty() || authHeader.substr(0, 7) != "Bearer ")
+            return crow::response(401, "{\"error\": \"Brak autoryzacji\"}");
+
+        std::string token = authHeader.substr(7);
+        std::string login = Crypto::verifyToken(token);
+        if (login.empty())
+            return crow::response(401, "{\"error\": \"Nieprawidlowy lub wygasly token\"}");
+
+        int userId = db.getUserId(login);
+        if (userId == -1)
+            return crow::response(404, "{\"error\": \"Nie znaleziono uzytkownika\"}");
+
+        auto body = crow::json::load(req.body);
+        if (!body || !body.has("old_password") || !body.has("new_password"))
+            return crow::response(400, "{\"error\": \"Nieprawidlowy JSON\"}");
+
+        std::string oldPassword = body["old_password"].s();
+        std::string newPassword = body["new_password"].s();
+
+        std::string currentHash = db.getPasswordHashForUser(login);
+        if (currentHash.empty() || !Crypto::verifyPassword(oldPassword, currentHash))
+            return crow::response(401, "{\"error\": \"Stare haslo jest nieprawidlowe\"}");
+
+        std::string newHash = Crypto::hashPassword(newPassword);
+        if (db.updateMasterPassword(userId, newHash))
+            return crow::response(200, "{\"status\": \"Haslo glowne zostalo zmienione\"}");
+
+        return crow::response(500, "{\"error\": \"Blad serwera podczas zmiany hasla\"}");
+    });
     //TODO
-    //2 Zmiana hasla admina
-    //3 Zmiana hasel w serwisie
     //4. LOGI
     //5 PRZENIESIENIE MAINA
     //6 Podmianka metod i uporzadkowanie kodu

@@ -20,6 +20,8 @@ public:
     bool addCredential(int userId,const std::string& service, const std::string& username,const std::string& pass);
     std::vector<Credentials> getCredentials(int userId);
     bool deleteCredential(int credentialId,int userId);
+    bool updateCredential(int credentialId, int userId, const std::string& service, const std::string& username, const std::string& encryptedPassword);
+    bool updateMasterPassword(int userId, const std::string& newPasswordHash);
 private:
     std::string connStr;
 };
