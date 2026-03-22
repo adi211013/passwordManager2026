@@ -1,0 +1,16 @@
+.idea/
+
+cmake-build-*/
+
+CMakeCache.txt
+CMakeFiles/
+Makefile
+*.cmake
+install_manifest.txt
+*.o
+*.a
+*.so
+*.out
+passwordManager2026
+
+.env
