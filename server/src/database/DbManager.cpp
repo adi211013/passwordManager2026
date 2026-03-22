@@ -199,7 +199,7 @@ void DbManager::addLog(int userId, const std::string& description)
         pqxx::connection conn(connStr);
         pqxx::work txn(conn);
         txn.exec(
-            "INSERT INTO logs (user_id,description) VALUES ($1,$2", pqxx::params{userId, description});
+            "INSERT INTO logs (user_id,description) VALUES ($1,$2)", pqxx::params{userId, description});
         txn.commit();
     }
     catch (const std::exception& e)
