@@ -1,7 +1,16 @@
+FROM alpine:edge AS builder
 
-FROM archlinux:base-devel AS builder
-
-RUN pacman -Syu --noconfirm cmake git postgresql-libs libpqxx libsodium openssl pkgconf asio
+RUN apk add --no-cache \
+    g++ \
+    make \
+    cmake \
+    git \
+    postgresql-dev \
+    libpqxx-dev \
+    libsodium-dev \
+    openssl-dev \
+    pkgconf \
+    asio-dev
 
 WORKDIR /app
 COPY . .
@@ -9,11 +18,15 @@ COPY . .
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release
 RUN cmake --build build --target server_app -j$(nproc)
 
+FROM alpine:edge
 
-FROM archlinux:base
-
-RUN pacman -Syu --noconfirm postgresql-libs libpqxx libsodium openssl && \
-    pacman -Scc --noconfirm
+RUN apk add --no-cache \
+    libpq \
+    libpqxx \
+    libsodium \
+    libstdc++ \
+    openssl \
+    tzdata
 
 WORKDIR /app
 

@@ -6,6 +6,9 @@
 -- Dumped from database version 15.17
 -- Dumped by pg_dump version 15.17
 
+
+-- PostgreSQL database dump
+--
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -17,18 +20,17 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-ALTER TABLE ONLY public.logs DROP CONSTRAINT logs_users_fk;
-ALTER TABLE ONLY public.credentials DROP CONSTRAINT credentials_users_fk;
-ALTER TABLE ONLY public.users DROP CONSTRAINT users_pk;
-ALTER TABLE ONLY public.users DROP CONSTRAINT users_login_key;
-ALTER TABLE ONLY public.logs DROP CONSTRAINT logs_pk;
-ALTER TABLE ONLY public.credentials DROP CONSTRAINT credentials_pk;
-DROP TABLE public.users;
-DROP TABLE public.logs;
-DROP TABLE public.credentials;
-SET default_tablespace = '';
+DROP TABLE IF EXISTS public.logs CASCADE;
+DROP TABLE IF EXISTS public.credentials CASCADE;
+DROP TABLE IF EXISTS public.users CASCADE;
 
+SET default_tablespace = '';
 SET default_table_access_method = heap;
+
+--
+-- Name: credentials; Type: TABLE; Schema: public; Owner: admin
+--
+
 
 --
 -- Name: credentials; Type: TABLE; Schema: public; Owner: admin

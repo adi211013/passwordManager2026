@@ -3,14 +3,18 @@
 //
 
 #include "Credentials.h"
-Credentials::Credentials(int iid,int iuserId,std::string sserviceName,std::string sloginName,std::string spassword,std::string sDate)
-:id(iid)
-,userId(iuserId),
-serviceName(std::move(sserviceName)),
-loginName(std::move(sloginName)),
-password(std::move(spassword)),
-date(std::move(sDate))
-{}
+
+Credentials::Credentials(int iid, int iuserId, std::string sserviceName, std::string sloginName, std::string spassword,
+                         std::string sDate)
+    : id(iid)
+      , userId(iuserId),
+      serviceName(std::move(sserviceName)),
+      loginName(std::move(sloginName)),
+      password(std::move(spassword)),
+      date(std::move(sDate))
+{
+}
+
 int Credentials::getId() const { return id; }
 int Credentials::getUserId() const { return userId; }
 std::string Credentials::getServiceName() const { return serviceName; }

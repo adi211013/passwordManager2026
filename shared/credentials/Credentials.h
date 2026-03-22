@@ -15,8 +15,10 @@ private:
     std::string loginName;
     std::string password;
     std::string date;
+
 public:
-    Credentials(int iid,int iuserId,std::string sserviceName,std::string sloginName,std::string spassword,std::string sDate);
+    Credentials(int iid, int iuserId, std::string sserviceName, std::string sloginName, std::string spassword,
+                std::string sDate);
     int getId() const;
     int getUserId() const;
     std::string getServiceName() const;
@@ -24,5 +26,3 @@ public:
     std::string getPassword() const;
     std::string getDate() const;
 };
-
-

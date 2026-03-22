@@ -5,10 +5,9 @@
 #pragma once
 #include <pqxx/pqxx>
 #include <string>
-#include <iostream>
 #include "../../shared/credentials/Credentials.h"
 #include <vector>
-#include "../../shared/logs//LogEntry.cpp"
+#include "../../shared/logs//LogEntry.h"
 
 class DbManager
 {

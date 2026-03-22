@@ -5,16 +5,10 @@
 #pragma once
 #include <string>
 
-struct AppConfig
-{
-    std::string dbConnStr;
-    int port;
-    std::string jwtSecret;
-    std::string masterKey;
-};
+#include "AppConfig.h"
 
-class Config
+
+namespace  Config
 {
-public:
-    static AppConfig load(const std::string& envPath = "../../.env");
+     AppConfig load(const std::string& envPath = "../../.env");
 };

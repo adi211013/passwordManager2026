@@ -4,6 +4,8 @@
 
 #include "DbManager.h"
 
+#include <iostream>
+
 DbManager::DbManager(const std::string& connectionString) : connStr(connectionString)
 {
 }
