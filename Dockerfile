@@ -1,7 +1,9 @@
-FROM debian:bookworm-slim AS builder
+FROM ubuntu:24.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-    g++ \
+    g++-14 \
     make \
     cmake \
     git \
@@ -12,13 +14,18 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libasio-dev
 
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100 && \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-14 100
+
 WORKDIR /app
 COPY . .
 
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release
 RUN cmake --build build --target server_app -j$(nproc)
 
-FROM debian:bookworm-slim
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
     libpq5 \
