@@ -1,16 +1,16 @@
-FROM alpine:edge AS builder
+FROM debian:bookworm-slim AS builder
 
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y \
     g++ \
     make \
     cmake \
     git \
-    postgresql-dev \
+    libpq-dev \
     libpqxx-dev \
     libsodium-dev \
-    openssl-dev \
-    pkgconf \
-    asio-dev
+    libssl-dev \
+    pkg-config \
+    libasio-dev
 
 WORKDIR /app
 COPY . .
@@ -18,18 +18,16 @@ COPY . .
 RUN cmake -B build -DCMAKE_BUILD_TYPE=Release
 RUN cmake --build build --target server_app -j$(nproc)
 
-FROM alpine:edge
+FROM debian:bookworm-slim
 
-RUN apk add --no-cache \
-    libpq \
-    libpqxx \
-    libsodium \
-    libstdc++ \
-    openssl \
-    tzdata
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libpqxx-dev \
+    libsodium-dev \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
 COPY --from=builder /app/build/server/server_app .
 
 EXPOSE 18080
