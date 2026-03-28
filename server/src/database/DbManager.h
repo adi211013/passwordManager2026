@@ -8,6 +8,7 @@
 #include "../../shared/credentials/Credentials.h"
 #include <vector>
 #include "../../shared/logs//LogEntry.h"
+#include <mutex>
 
 class DbManager
 {
@@ -27,5 +28,6 @@ public:
     std::vector<LogEntry> getLogs(int userId);
 
 private:
-    std::string connStr;
+    pqxx::connection conn;
+    std::mutex dbMutex;
 };

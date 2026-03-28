@@ -22,6 +22,8 @@ namespace AuthRoutes
             }
             std::string login = body["login"].s();
             std::string password = body["password"].s();
+            if (login.empty()||login.length()>64||password.length()<8||password.length()>64)
+                return crow::response(400,"Haslo lub login nie spelniaja wymagan");
             std::string hash = Crypto::hashPassword(password);
             if (db.registerUser(login, hash))
             {

@@ -123,7 +123,9 @@ namespace VaultRoutes
             std::string service = body["service"].s();
             std::string username = body["username"].s();
             std::string password = body["password"].s();
-
+            if (service.empty() || service.length() > 96 || username.empty() || username.length() > 64 || password.
+                length() < 8 || password.length() > 64)
+                return crow::response(400, "Nazwa serwisu lub haslo lub login nie spelniaja wymagan");
             std::string encryptedPassword = Crypto::encrypt(password);
 
             if (db.updateCredential(credentialId, userId, service, username, encryptedPassword))
@@ -159,7 +161,8 @@ namespace VaultRoutes
 
             std::string oldPassword = body["old_password"].s();
             std::string newPassword = body["new_password"].s();
-
+            if (newPassword.length() < 8 || newPassword.length() > 64)
+                return crow::response(400, "Haslo nie spelniaja wymagan");
             std::string currentHash = db.getPasswordHashForUser(login);
             if (currentHash.empty() || !Crypto::verifyPassword(oldPassword, currentHash))
             {

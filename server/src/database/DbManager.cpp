@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-DbManager::DbManager(const std::string& connectionString) : connStr(connectionString)
+DbManager::DbManager(const std::string& connectionString) :conn(connectionString)
 {
 }
 
@@ -14,7 +14,6 @@ bool DbManager::checkConnection()
 {
     try
     {
-        pqxx::connection conn(connStr);
         if (conn.is_open())
         {
             std::cout << "Polaczono z baza dany" << conn.dbname() << std::endl;
@@ -34,8 +33,9 @@ bool DbManager::registerUser(const std::string& login, const std::string& passwo
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
+
         txn.exec("INSERT INTO users (login,password) VALUES ($1,$2)", pqxx::params{login, password});
         txn.commit();
         return true;
@@ -51,7 +51,7 @@ std::string DbManager::getPasswordHashForUser(const std::string& login)
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         pqxx::result res = txn.exec(
             "SELECT password FROM users WHERE login = $1",
@@ -72,7 +72,7 @@ int DbManager::getUserId(const std::string& login)
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         pqxx::result res = txn.exec("SELECT id FROM users WHERE login =$1", pqxx::params{login});
         if (res.empty())
@@ -91,7 +91,7 @@ bool DbManager::addCredential(int userId, const std::string& service, const std:
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         txn.exec(
             "INSERT INTO credentials (user_id, service_name, login_name, encrypted_password) VALUES ($1, $2, $3, $4)",
@@ -112,7 +112,7 @@ std::vector<Credentials> DbManager::getCredentials(int userId)
     std::vector<Credentials> credentials;
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         pqxx::result result = txn.exec(
             "SELECT id,service_name,login_name,encrypted_password,updated_at FROM credentials where user_id=$1",
@@ -141,7 +141,7 @@ bool DbManager::deleteCredential(int credentialId, int userId)
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         pqxx::result res = txn.exec(
             "DELETE FROM credentials WHERE id=$1 AND user_id=$2", pqxx::params{credentialId, userId});
@@ -160,7 +160,7 @@ bool DbManager::updateCredential(int credentialId, int userId, const std::string
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         pqxx::result res = txn.exec(
             "UPDATE credentials SET service_name = $1, login_name = $2, encrypted_password = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 AND user_id = $5",
@@ -180,7 +180,7 @@ bool DbManager::updateMasterPassword(int userId, const std::string& newPasswordH
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         pqxx::result res = txn.exec("UPDATE users SET password = $1 WHERE id= $2",
                                     pqxx::params{newPasswordHash, userId});
@@ -198,7 +198,7 @@ void DbManager::addLog(int userId, const std::string& description)
 {
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         txn.exec(
             "INSERT INTO logs (user_id,description) VALUES ($1,$2)", pqxx::params{userId, description});
@@ -215,7 +215,7 @@ std::vector<LogEntry> DbManager::getLogs(int userId)
     std::vector<LogEntry> logs;
     try
     {
-        pqxx::connection conn(connStr);
+        std::lock_guard<std::mutex> lock(dbMutex);
         pqxx::work txn(conn);
         pqxx::result res = txn.exec("SELECT * FROM logs WHERE user_id=$1 ORDER BY created_at DESC",
                                     pqxx::params{userId});
