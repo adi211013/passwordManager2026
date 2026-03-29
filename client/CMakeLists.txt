@@ -10,21 +10,25 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SODIUM REQUIRED libsodium)
 
-set(CLIENT_SOURCES
-        src/main.cpp
-        src/MainWindow/MainWindow.cpp
-        src/MainWindow/MainWindow.h
-        src/LoginWidget/LoginWidget.h
-        src/LoginWidget/LoginWidget.cpp
-        src/VaultWidget/VaultWidget.h
+file(GLOB_RECURSE CLIENT_SOURCES
+        src/*.cpp
+        src/*.h
 )
 
-add_executable(client_app WIN32 MACOSX_BUNDLE ${CLIENT_SOURCES})
+add_executable(client_app ${CLIENT_SOURCES})
+
+target_include_directories(client_app PRIVATE
+        src
+        ${SODIUM_INCLUDE_DIRS}
+)
 
 target_link_libraries(client_app PRIVATE
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
         Qt6::Network
+        ${SODIUM_LIBRARIES}
 )
