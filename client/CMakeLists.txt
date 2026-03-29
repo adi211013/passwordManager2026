@@ -10,8 +10,8 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(SODIUM REQUIRED libsodium)
+find_library(SODIUM_LIB sodium HINTS /opt/homebrew/lib)
+find_path(SODIUM_INCLUDE sodium.h HINTS /opt/homebrew/include)
 
 file(GLOB_RECURSE CLIENT_SOURCES
         src/*.cpp
@@ -22,7 +22,7 @@ add_executable(client_app ${CLIENT_SOURCES})
 
 target_include_directories(client_app PRIVATE
         src
-        ${SODIUM_INCLUDE_DIRS}
+        ${SODIUM_INCLUDE}
 )
 
 target_link_libraries(client_app PRIVATE
@@ -30,5 +30,5 @@ target_link_libraries(client_app PRIVATE
         Qt6::Gui
         Qt6::Widgets
         Qt6::Network
-        ${SODIUM_LIBRARIES}
+        ${SODIUM_LIB}
 )

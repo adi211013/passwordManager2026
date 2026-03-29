@@ -41,7 +41,7 @@ CREATE TABLE public.credentials (
     user_id integer NOT NULL,
     service_name character varying(100) NOT NULL,
     login_name character varying(255) NOT NULL,
-    encrypted_password bytea NOT NULL,
+    encrypted_password TEXT NOT NULL,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
