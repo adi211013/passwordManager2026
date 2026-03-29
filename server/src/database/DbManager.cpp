@@ -189,7 +189,7 @@ bool DbManager::updateMasterPassword(int userId, const std::string& newPasswordH
     }
     catch (const std::exception& e)
     {
-        std::cerr << "blad przy zmiania hasla" << e.what() << std::endl;
+        std::cerr << "blad przy zmianie hasla" << e.what() << std::endl;
         return false;
     }
 }

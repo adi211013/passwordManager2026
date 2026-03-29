@@ -27,4 +27,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(jwt_cpp)
 
 add_subdirectory(shared)
-add_subdirectory(server)
+option(BUILD_SERVER "Build the C++ Backend Server" ON)
+option(BUILD_CLIENT "Build the Qt6 Desktop Client" OFF)
+
+if(BUILD_SERVER)
+    message(STATUS "Buduje modul Serwera...")
+    add_subdirectory(server)
+endif()
+
+if(BUILD_CLIENT)
+    message(STATUS "Buduje modul Klienta Qt6...")
+    add_subdirectory(client)
+endif()

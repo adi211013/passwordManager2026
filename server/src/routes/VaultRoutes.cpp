@@ -1,11 +1,3 @@
-//
-// Created by adi on 3/22/26.
-//
-
-//
-// Created by adi on 3/22/26.
-//
-
 #include "VaultRoutes.h"
 #include "authhelper/AuthHelper.h"
 #include "crypto/Crypto.h"
@@ -32,13 +24,33 @@ namespace VaultRoutes
                 return crow::response(400, res);
             }
 
-            std::string service = body["service"].s();
-            std::string username = body["username"].s();
-            std::string password = body["password"].s();
+            std::string username;
+            std::string service;
+            std::string password;
+            try
+            {
+                service = body["service"].s();
+                username = body["username"].s();
+                password = body["password"].s();
+            }
+            catch (std::exception& e)
+            {
+                crow::json::wvalue res;
+                res["status"] = "Blad podczas pobierania loginu lub hasla";
+                return crow::response(400, res);
+            }
+            if (service.empty() || service.length() > 96 || username.empty() || username.length() > 64 || password.
+                length() < 8 || password.length() > 64)
+            {
+                crow::json::wvalue res;
+
+                res["status"] = "Nazwa serwisu lub haslo lub login nie spelniaja wymagan";
+                return crow::response(400, res);
+            }
             std::string encryptedPassword = Crypto::encrypt(password);
             if (db.addCredential(userId, service, username, encryptedPassword))
             {
-                db.addLog(userId, "Dodano haslo w seriwisie " + service);
+                db.addLog(userId, "Dodano haslo w serwisie " + service);
                 crow::json::wvalue res;
                 res["status"] = "Haslo zapisane";
                 return crow::response(201, res);
@@ -120,12 +132,29 @@ namespace VaultRoutes
                 return crow::response(400, res);
             }
 
-            std::string service = body["service"].s();
-            std::string username = body["username"].s();
-            std::string password = body["password"].s();
+            std::string username;
+            std::string service;
+            std::string password;
+            try
+            {
+                service = body["service"].s();
+                username = body["username"].s();
+                password = body["password"].s();
+            }
+            catch (std::exception& e)
+            {
+                crow::json::wvalue res;
+                res["status"] = "Blad podczas pobierania loginu lub hasla";
+                return crow::response(400, res);
+            }
             if (service.empty() || service.length() > 96 || username.empty() || username.length() > 64 || password.
                 length() < 8 || password.length() > 64)
-                return crow::response(400, "Nazwa serwisu lub haslo lub login nie spelniaja wymagan");
+            {
+                crow::json::wvalue res;
+
+                res["status"] = "Nazwa serwisu lub haslo lub login nie spelniaja wymagan";
+                return crow::response(400, res);
+            }
             std::string encryptedPassword = Crypto::encrypt(password);
 
             if (db.updateCredential(credentialId, userId, service, username, encryptedPassword))
@@ -158,11 +187,26 @@ namespace VaultRoutes
                 res["status"] = "Nieprawidlowy JSON";
                 return crow::response(400, res);
             }
+            std::string oldPassword;
+            std::string newPassword;
 
-            std::string oldPassword = body["old_password"].s();
-            std::string newPassword = body["new_password"].s();
-            if (newPassword.length() < 8 || newPassword.length() > 64)
-                return crow::response(400, "Haslo nie spelniaja wymagan");
+            try
+            {
+                oldPassword = body["old_password"].s();
+                newPassword = body["new_password"].s();
+            }
+            catch (std::exception& e)
+            {
+                crow::json::wvalue res;
+                res["status"] = "Blad podczas pobierania loginu lub hasla";
+                return crow::response(400, res);
+            }
+            if (newPassword.length() < 8 || newPassword.length() > 96)
+            {
+                crow::json::wvalue res;
+                res["status"] = "Haslo nie spelniaja wymagan";
+                return crow::response(400, res);
+            }
             std::string currentHash = db.getPasswordHashForUser(login);
             if (currentHash.empty() || !Crypto::verifyPassword(oldPassword, currentHash))
             {

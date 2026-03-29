@@ -20,10 +20,26 @@ namespace AuthRoutes
                 res["status"] = "Brak loginu lub hasla";
                 return crow::response(400, res);
             }
-            std::string login = body["login"].s();
-            std::string password = body["password"].s();
-            if (login.empty()||login.length()>64||password.length()<8||password.length()>64)
-                return crow::response(400,"Haslo lub login nie spelniaja wymagan");
+            std::string login;
+            std::string password;
+            try
+            {
+                login = body["login"].s();
+                password = body["password"].s();
+            }
+            catch (std::exception& e)
+            {
+                crow::json::wvalue res;
+                res["status"] = "Blad podczas pobierania loginu lub hasla";
+                return crow::response(400, res);
+            }
+
+            if (login.empty() || login.length() > 64 || password.length() < 8 || password.length() > 64)
+            {
+                crow::json::wvalue res;
+                res["status"] = "Haslo lub login nie spelniaja wymagan";
+                return crow::response(400, res);
+            }
             std::string hash = Crypto::hashPassword(password);
             if (db.registerUser(login, hash))
             {
@@ -48,8 +64,19 @@ namespace AuthRoutes
                 return crow::response(400, res);
             }
 
-            std::string login = body["login"].s();
-            std::string password = body["password"].s();
+            std::string login;
+            std::string password;
+            try
+            {
+                login = body["login"].s();
+                password = body["password"].s();
+            }
+            catch (std::exception& e)
+            {
+                crow::json::wvalue res;
+                res["status"] = "Blad podczas pobierania loginu lub hasla";
+                return crow::response(400, res);
+            }
 
             std::string hash = db.getPasswordHashForUser(login);
 

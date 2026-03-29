@@ -8,7 +8,7 @@
 AuthResult AuthHelper::verify(const crow::request& req, DbManager& db)
 {
     auto authHeader = req.get_header_value("Authorization");
-    if (authHeader.empty() || authHeader.substr(0, 7) != "Bearer ")
+    if (authHeader.length() < 7 || authHeader.substr(0, 7) != "Bearer ")
         return {-1, 401, "", "Brak autoryzacji"};
 
     std::string token = authHeader.substr(7);
