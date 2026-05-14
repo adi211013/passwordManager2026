@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN ARCH=$(uname -m) && \
-  [ "$ARCH" = "arm64" ] && ARCH="aarch64" || true; \
+    [ "$ARCH" = "arm64" ] && ARCH="aarch64" || true && \
     wget -q https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-linux-${ARCH}.sh -O cmake.sh && \
     sh cmake.sh --skip-license --prefix=/usr/local && \
     rm cmake.sh
@@ -28,12 +28,29 @@ RUN git clone --branch 7.10.1 --depth=1 https://github.com/jtv/libpqxx.git && \
     rm -rf libpqxx
 
 WORKDIR /app
+
+COPY CMakeLists.txt .
+COPY shared/ shared/
+COPY server/CMakeLists.txt server/CMakeLists.txt
+
+RUN mkdir -p server/src && touch server/src/dummy.cpp
+
+RUN cmake -B build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SERVER=ON \
+        -DBUILD_CLIENT=OFF \
+        -DFETCHCONTENT_UPDATES_DISCONNECTED=ON \
+    || true
+
 COPY . .
 
-RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SERVER=ON -DBUILD_CLIENT=OFF && \
+RUN cmake -B build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SERVER=ON \
+        -DBUILD_CLIENT=OFF \
+        -DFETCHCONTENT_UPDATES_DISCONNECTED=ON && \
     cmake --build build --target server_app -j$(nproc)
 
-# --- Runtime image ---
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive

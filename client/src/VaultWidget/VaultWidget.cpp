@@ -90,18 +90,15 @@ void VaultWidget::setupUi()
         }
     )");
 
-    // Outer layout: content area + side panel
     auto* outerLayout = new QHBoxLayout(this);
     outerLayout->setContentsMargins(0, 0, 0, 0);
     outerLayout->setSpacing(0);
 
-    // Main content
     auto* contentWidget = new QWidget(this);
     auto* contentLayout = new QVBoxLayout(contentWidget);
     contentLayout->setContentsMargins(28, 24, 28, 20);
     contentLayout->setSpacing(16);
 
-    // Top bar
     auto* topBar = new QHBoxLayout();
     auto* titleLabel = new QLabel("🔐  Mój Sejf", this);
     titleLabel->setObjectName("titleLabel");
@@ -130,13 +127,11 @@ void VaultWidget::setupUi()
     topBar->addWidget(logoutBtn);
     contentLayout->addLayout(topBar);
 
-    // Status bar
     statusBar_ = new QLabel("", this);
     statusBar_->setObjectName("statusBar");
     statusBar_->hide();
     contentLayout->addWidget(statusBar_);
 
-    // Scroll area for cards
     auto* scrollArea = new QScrollArea(this);
     scrollArea->setWidgetResizable(true);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -158,11 +153,9 @@ void VaultWidget::setupUi()
 
     outerLayout->addWidget(contentWidget, 1);
 
-    // Side panel
     sidePanel_ = new SidePanel(this);
     outerLayout->addWidget(sidePanel_);
 
-    // Connections
     connect(addBtn, &QPushButton::clicked, this, [this]() {
         sidePanel_->openForAdd();
     });
@@ -201,7 +194,6 @@ QNetworkRequest VaultWidget::makeRequest(const QString& path) const
 
 void VaultWidget::clearCards()
 {
-    // Remove all CredentialCard widgets
     QList<CredentialCard*> cards = cardsContainer_->findChildren<CredentialCard*>();
     for (auto* card : cards) {
         cardsLayout_->removeWidget(card);
@@ -246,7 +238,6 @@ void VaultWidget::fetchCredentials()
             data.date = obj["date"].toString();
 
             auto* card = new CredentialCard(data, cardsContainer_);
-            // Insert before the stretch at the end
             cardsLayout_->insertWidget(cardsLayout_->count() - 1, card);
 
             connect(card, &CredentialCard::editRequested, this, [this](const CredentialData& d) {
@@ -333,7 +324,6 @@ void VaultWidget::onChangePasswordRequested(const QString& oldPassword, const QS
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError) {
-            // Serwer zwraca 401 gdy stare hasło jest złe — Qt traktuje to jako error
             showStatusBar("Błąd: stare hasło jest nieprawidłowe.", true);
             return;
         }

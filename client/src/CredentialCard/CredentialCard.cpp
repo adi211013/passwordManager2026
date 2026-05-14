@@ -59,7 +59,6 @@ void CredentialCard::setupUi()
     mainLayout->setContentsMargins(14, 12, 14, 12);
     mainLayout->setSpacing(6);
 
-    // Top row: service name + buttons
     auto* topRow = new QHBoxLayout();
     auto* serviceLabel = new QLabel(data_.serviceName, this);
     serviceLabel->setObjectName("serviceLabel");
@@ -78,12 +77,10 @@ void CredentialCard::setupUi()
     topRow->addWidget(deleteBtn);
     mainLayout->addLayout(topRow);
 
-    // Login row
     auto* loginLabel = new QLabel("👤  " + data_.loginName, this);
     loginLabel->setObjectName("loginLabel");
     mainLayout->addWidget(loginLabel);
 
-    // Password row
     auto* passRow = new QHBoxLayout();
     passwordLabel_ = new QLabel("••••••••", this);
     passwordLabel_->setObjectName("passwordLabel");
@@ -95,7 +92,6 @@ void CredentialCard::setupUi()
     passRow->addWidget(toggleBtn);
     mainLayout->addLayout(passRow);
 
-    // Date
     auto* dateLabel = new QLabel("Ostatnia zmiana: " + data_.date.left(10), this);
     dateLabel->setObjectName("dateLabel");
     mainLayout->addWidget(dateLabel);

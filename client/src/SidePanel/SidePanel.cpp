@@ -82,7 +82,6 @@ void SidePanel::setupUi()
     titleLabel_->setObjectName("panelTitle");
     mainLayout->addWidget(titleLabel_);
 
-    // --- Credential fields (Add/Edit) ---
     credentialFields_ = new QWidget(this);
     auto* credLayout = new QVBoxLayout(credentialFields_);
     credLayout->setContentsMargins(0, 0, 0, 0);
@@ -100,7 +99,6 @@ void SidePanel::setupUi()
     addField(credentialFields_, credLayout, "Nazwa serwisu", serviceInput_);
     addField(credentialFields_, credLayout, "Login / e-mail", usernameInput_);
 
-    // Password row with generate button
     auto* passLbl = new QLabel("Hasło", credentialFields_);
     passLbl->setObjectName("fieldLabel");
     credLayout->addWidget(passLbl);
@@ -120,13 +118,12 @@ void SidePanel::setupUi()
     connect(generateBtn, &QPushButton::clicked, this, [this]() {
         QString pwd = generatePassword();
         passwordInput_->setText(pwd);
-        passwordInput_->setEchoMode(QLineEdit::Normal); // pokaż wygenerowane
+        passwordInput_->setEchoMode(QLineEdit::Normal);
         setStatus("Hasło wygenerowane — możesz je skopiować.", false);
     });
 
     mainLayout->addWidget(credentialFields_);
 
-    // --- Change password fields ---
     changePassFields_ = new QWidget(this);
     auto* passLayout = new QVBoxLayout(changePassFields_);
     passLayout->setContentsMargins(0, 0, 0, 0);
@@ -274,7 +271,6 @@ void SidePanel::setStatus(const QString& msg, bool error)
 
 QString SidePanel::generatePassword(int length)
 {
-    // Używamy libsodium do losowania — już jest w projekcie
     static const char charset[] =
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

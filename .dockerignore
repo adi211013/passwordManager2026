@@ -1,4 +1,4 @@
-cmake-build-*
-.git
-.idea
+cmake-build-debug/
+build/
 .env
+client/
